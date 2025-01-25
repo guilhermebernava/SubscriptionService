@@ -1,0 +1,52 @@
+﻿# Diretórios de build
+bin/
+obj/
+
+# Arquivos de configuração de usuário do Visual Studio
+.vs/
+.vscode/
+.idea/
+
+# Arquivos de cache do NuGet
+.nuget/
+packages/
+
+# Arquivos de configuração específicos de IDE
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Diretórios de arquivos temporários e de logs
+*.log
+tmp/
+
+# Arquivos gerados durante o build
+publish/
+
+# Diretórios de dependências do .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Arquivos de configuração do Rider
+.idea/
+
+# Arquivos de configuração do Visual Studio para .NET
+.vs2019/
+
+# Arquivos gerados pelo dotnet restore
+*.nupkg
+
+# Arquivos do ASP.NET Core
+appsettings.json
+
+# Arquivos temporários de build do .NET 6+
+.vscode/
+
+# Modo de produção de artefatos de build
+wwwroot/
+
+# Gerenciamento de pacotes
+*.swp
+/SubscriptionService/SubscriptionService.http
