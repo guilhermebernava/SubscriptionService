@@ -4,19 +4,16 @@ using Amazon.Extensions.NETCore.Setup;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Infra.Interfaces;
-using Infra.Models;
 using Infra.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using Services.Models;
 using Services.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-
-//TODO melhorar esse codigo para poder enviar emails e ou notificacoes pela AWS
-//(O Codigo que vai fazer o envio de Fato vai ser outro, mas preparar a modal para poder enviar os dados)
 
 var awsOptions = new AWSOptions
 {
@@ -30,6 +27,9 @@ builder.Services.AddAWSService<IAmazonSQS>();
 
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<ISubscriptionServices, SubscriptionServices>();
+
+builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+builder.Services.AddScoped<ITemplateServices, TemplateServices>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -45,20 +45,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
-{
+if (app.Environment.IsDevelopment()) 
     app.MapOpenApi();
-}
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapPost("/subscription", async (Subscription subscription, [FromServices] ISubscriptionServices services) =>
+#region SUBSCRIPTIONS
+app.MapPost("/subscription", async (SubscriptionModel model, [FromServices] ISubscriptionServices services) =>
 {
-    await services.CreateSubscriptionAsync(subscription);
-    return Results.Created($"/subscriptions/{subscription.Id}", subscription);
+    await services.CreateSubscriptionAsync(model);
+    return Results.Created();
 }).RequireAuthorization();
 
 app.MapGet("/subscription/{id}", async (string id, [FromServices] ISubscriptionServices services) =>
@@ -73,5 +72,27 @@ app.MapDelete("/subscription/{id}", async (string id, [FromServices] ISubscripti
     await services.DeleteSubscriptionAsync(id);
     return Results.NoContent();
 }).RequireAuthorization();
+#endregion
+
+#region TEMPLATES
+app.MapPost("/template", async (string customTemplate, [FromServices] ITemplateServices services) =>
+{
+    await services.CreateTemplateAsync(customTemplate);
+    return Results.Created();
+}).RequireAuthorization();
+
+app.MapGet("/template/{id}", async (string id, [FromServices] ITemplateServices services) =>
+{
+    var result = await services.GetTemplateAsync(id);
+    if (result == null) return Results.NotFound();
+    return Results.Ok(result);
+}).RequireAuthorization();
+
+app.MapDelete("/template/{id}", async (string id, [FromServices] ITemplateServices services) =>
+{
+    await services.DeleteTemplateAsync(id);
+    return Results.NoContent();
+}).RequireAuthorization();
+#endregion
 
 app.Run();

@@ -1,8 +1,10 @@
 ﻿using Amazon.SQS;
+using Domain.Entities;
+using Domain.Enums;
 using Infra.Interfaces;
-using Infra.Models;
 using Microsoft.Extensions.Configuration;
 using Services.Interfaces;
+using Services.Models;
 using SQS_Consumer;
 using System.Text.Json;
 
@@ -12,35 +14,21 @@ public class SubscriptionServices : ISubscriptionServices
     private readonly ISubscriptionRepository _repository;
     private readonly SqsClient _sqsClient;
     private readonly string _queueUrl;
-    //private readonly AmazonSimpleNotificationServiceClient _snsClient;
 
-    public SubscriptionServices(ISubscriptionRepository repository, IAmazonSQS sqsClient,IConfiguration configuration)
+    public SubscriptionServices(ISubscriptionRepository repository, IAmazonSQS sqsClient, IConfiguration configuration)
     {
         _repository = repository;
         _sqsClient = new SqsClient(sqsClient);
         _queueUrl = configuration["AWS:Queue"];
-        //_snsClient = new AmazonSimpleNotificationServiceClient(acessKey, acessSecret, RegionEndpoint.GetBySystemName(region));
     }
 
-    public async Task<bool> CreateSubscriptionAsync(Subscription subscription)
+    public async Task<bool> CreateSubscriptionAsync(SubscriptionModel model)
     {
-        subscription.Id = Guid.NewGuid().ToString();
-        subscription.CreatedAt = DateTime.UtcNow;
-        subscription.Status = "Active";
+        if (model.SubscriptionType != ESubscriptionType.Immediately)
+            await _repository.CreateAsync(new Subscription(model.Email, model.SubscriptionType, DateTime.Now.Date, model.IdTemplate, model.CustomTemplate));
 
-        if (await _repository.CreateAsync(subscription))
-        {
-            await _sqsClient.SendMessageAsync(_queueUrl, JsonSerializer.Serialize(subscription));
-
-            //TODO migrar essa logica para microserviço de envio de SMS/EMAIL
-            //await _snsClient.PublishAsync(new Amazon.SimpleNotificationService.Model.PublishRequest()
-            //{
-            //    TopicArn = "arn:aws:sns:sa-east-1:495599748773:Subscriptions",
-            //    Message = "teste de envio de SMS"
-            //});
-            return true;
-        }
-        return false;
+        await _sqsClient.SendMessageAsync(_queueUrl, JsonSerializer.Serialize(model));
+        return true;
     }
 
     public async Task<Subscription?> GetSubscriptionAsync(string id) => await _repository.GetByIdAsync(id);

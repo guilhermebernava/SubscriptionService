@@ -1,9 +1,6 @@
-﻿using Infra.Models;
+﻿using Domain.Entities;
 
 namespace Infra.Interfaces;
-public interface ISubscriptionRepository
+public interface ISubscriptionRepository : IRepository<Subscription>
 {
-    Task<bool> CreateAsync(Subscription subscription);
-    Task<Subscription?> GetByIdAsync(string id);
-    Task<bool> DeleteAsync(string id);
 }
