@@ -33,6 +33,33 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
         return response.HttpStatusCode == HttpStatusCode.OK || response.HttpStatusCode == HttpStatusCode.Created;
     }
 
+    public async Task<List<Subscription>> GetAllAsync()
+    {
+        var request = new GetItemRequest
+        {
+            TableName = _tableName,
+        };
+
+        var response = await _dynamoDb.GetItemAsync(request);
+        var subscription = new List<Subscription>();
+
+        if (response.Item.Count <= 0) return subscription;
+
+        foreach (var item in response.Item)
+        {
+            subscription.Add(new Subscription
+            {
+                Id = response.Item["Id"].S,
+                Email = response.Item["Email"].S,
+                SubscriptionType = Enum.Parse<ESubscriptionType>(response.Item["SubscriptionType"].S),
+                IdTemplate = response.Item["IdTemplate"].S,
+                LastSended =  DateTime.Parse(response.Item["LastSended"].S),
+                CustomTemplate = response.Item["CustomTemplate"].S
+            });
+        }
+
+        return subscription;
+    }
 
     public async override Task<Subscription?> GetByIdAsync(string id)
     {
@@ -56,6 +83,7 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
             Email = response.Item["Email"].S,
             SubscriptionType = Enum.Parse<ESubscriptionType>(response.Item["SubscriptionType"].S),
             IdTemplate = response.Item["IdTemplate"].S,
+            LastSended = DateTime.Parse(response.Item["LastSended"].S),
             CustomTemplate = response.Item["CustomTemplate"].S
         };
     }
