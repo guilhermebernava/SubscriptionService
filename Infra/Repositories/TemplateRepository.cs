@@ -28,6 +28,30 @@ public class TemplateRepository : Repository<Template>, ITemplateRepository
         return response.HttpStatusCode == HttpStatusCode.OK || response.HttpStatusCode == HttpStatusCode.Created;
     }
 
+    public async Task<List<Template>> GetAllAsync()
+    {
+        var request = new GetItemRequest
+        {
+            TableName = _tableName,
+        };
+
+        var response = await _dynamoDb.GetItemAsync(request);
+        var template = new List<Template>();
+
+        if (response.Item.Count <= 0) return template;
+
+        foreach (var item in response.Item)
+        {
+            template.Add(new Template
+            {
+                Id = response.Item["Id"].S,
+                TemplateHtml = response.Item["TemplateHtml"].S
+            });
+        }
+
+        return template;
+    }
+
 
     public async override Task<Template?> GetByIdAsync(string id)
     {
