@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
 using Services.Services;
+using WebApi.Subscription.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<CustomExceptionMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -75,9 +78,9 @@ app.MapDelete("/subscription/{id}", async (string id, [FromServices] ISubscripti
 #endregion
 
 #region TEMPLATES
-app.MapPost("/template", async (string customTemplate, [FromServices] ITemplateServices services) =>
+app.MapPost("/template", async (TemplateModel model, [FromServices] ITemplateServices services) =>
 {
-    await services.CreateTemplateAsync(customTemplate);
+    await services.CreateTemplateAsync(model);
     return Results.Created();
 }).RequireAuthorization();
 

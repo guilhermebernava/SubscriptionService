@@ -25,7 +25,7 @@ public class SubscriptionServices : ISubscriptionServices
     public async Task<bool> CreateSubscriptionAsync(SubscriptionModel model)
     {
         if (model.SubscriptionType != ESubscriptionType.Immediately)
-            await _repository.CreateAsync(new Subscription(model.Email, model.SubscriptionType, DateTime.Now.Date, model.IdTemplate, model.CustomTemplate));
+            await _repository.CreateAsync(new Subscription(model.Email, model.SubscriptionType, DateTime.Now.Date, model.UserId,model.IdTemplate, model.CustomTemplate));
 
         await _sqsClient.SendMessageAsync(_queueUrl, JsonSerializer.Serialize(model));
         return true;

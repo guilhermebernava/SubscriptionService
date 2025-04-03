@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Infra.Interfaces;
 using Services.Interfaces;
+using Services.Models;
 
 namespace Services.Services;
 public class TemplateServices : ITemplateServices
@@ -12,7 +13,7 @@ public class TemplateServices : ITemplateServices
         _repository = repository;
     }
 
-    public async Task<bool> CreateTemplateAsync(string customTemplate) => await _repository.CreateAsync(new Template(customTemplate));
+    public async Task<bool> CreateTemplateAsync(TemplateModel model) => await _repository.CreateAsync(new Template(model.CustomTemplate,model.UserId));
 
     public async Task<Template?> GetTemplateAsync(string id) => await _repository.GetByIdAsync(id);
 

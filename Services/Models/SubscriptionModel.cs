@@ -7,4 +7,5 @@ public class SubscriptionModel
     public ESubscriptionType SubscriptionType { get; set; }
     public string? IdTemplate { get; set; }
     public string? CustomTemplate { get; set; }
+    public string UserId { get; set; }
 }

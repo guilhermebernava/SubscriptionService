@@ -8,7 +8,7 @@ public class Subscription
     {
         
     }
-    public Subscription(string email, ESubscriptionType subscriptionType, DateTime lastSended, string? idTemplate = null, string? customTemplate = null)
+    public Subscription(string email, ESubscriptionType subscriptionType, DateTime lastSended,string userId, string? idTemplate = null, string? customTemplate = null)
     {
         Id = Guid.NewGuid().ToString();
         Email = email;
@@ -16,6 +16,7 @@ public class Subscription
         LastSended = lastSended;
         IdTemplate = idTemplate;
         CustomTemplate = customTemplate;
+        UserId = userId;
     }
 
     public string Id { get; set; }
@@ -24,4 +25,5 @@ public class Subscription
     public DateTime LastSended { get; set; }
     public string? IdTemplate { get; set; }
     public string? CustomTemplate { get; set; }
+    public string UserId { get; set; }
 }
