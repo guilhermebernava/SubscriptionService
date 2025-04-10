@@ -18,4 +18,20 @@ public class TemplateServices : ITemplateServices
     public async Task<Template?> GetTemplateAsync(string id) => await _repository.GetByIdAsync(id);
 
     public async Task<bool> DeleteTemplateAsync(string id) => await _repository.DeleteAsync(id);
+
+    public async Task<List<Template>> GetAllTemplatesAsync() => await _repository.GetAllAsync();
+
+    public async Task<bool> UpdateTemplateAsync(TemplateUpdateModel model)
+    {
+        if (model.Id == null) throw new ArgumentException("Id could not be null");
+
+        var template = new Template
+        {
+            Id = model.Id,
+            TemplateHtml = model.TemplateHtml,
+            UserId = model.UserId,
+        };
+
+        return await _repository.UpdateAsync(template);
+    }
 }

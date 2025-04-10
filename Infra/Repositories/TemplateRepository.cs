@@ -9,7 +9,6 @@ using System.Net;
 namespace Infra.Repositories;
 public class TemplateRepository : Repository<Template>, ITemplateRepository
 {
-    //TODO CRIAR UPDATE e GET ALL NO REPOSITORIO E SERVICO
     public TemplateRepository(IAmazonDynamoDB dynamoDb, IConfiguration configuration) : base(dynamoDb, configuration["AWS:Template"])
     {
     }
@@ -99,6 +98,32 @@ public class TemplateRepository : Repository<Template>, ITemplateRepository
         {
             throw new CustomException(ex);
         }
+    }
+
+    public async override Task<bool> UpdateAsync(Template subscription)
+    {
+        if (subscription.Id == null) return false;
+
+        var request = new UpdateItemRequest
+        {
+            TableName = _tableName,
+            Key = new Dictionary<string, AttributeValue>
+            {
+                { "Id", new AttributeValue { S= subscription.Id }  }
+
+            },
+            UpdateExpression = "SET TemplateHtml: templateHtml, UserId = :userId",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                { ":templateHtml", new AttributeValue { S = subscription.TemplateHtml } },
+                { ":userId", new AttributeValue { S = subscription.UserId } },             
+            },
+            ReturnValues = "UPDATED_NEW"
+        };
+
+        var response = await _dynamoDb.UpdateItemAsync(request);
+
+        return response.HttpStatusCode == HttpStatusCode.OK;
     }
 
 }

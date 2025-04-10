@@ -40,4 +40,9 @@ public class Repository<T> : IRepository<T> where T : class
         await Task.Delay(10);
         return null;
     }
+
+    public virtual async Task<bool> UpdateAsync(T subscription)
+    {
+        return await Task.FromResult(false);
+    }
 }

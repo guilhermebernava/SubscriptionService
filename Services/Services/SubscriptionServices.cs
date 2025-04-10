@@ -26,12 +26,32 @@ public class SubscriptionServices : ISubscriptionServices
     {
         if (model.SubscriptionType != ESubscriptionType.Immediately)
             await _repository.CreateAsync(new Subscription(model.Email, model.SubscriptionType, DateTime.Now.Date, model.UserId,model.IdTemplate, model.CustomTemplate));
-
-        await _sqsClient.SendMessageAsync(_queueUrl, JsonSerializer.Serialize(model));
+        else
+            await _sqsClient.SendMessageAsync(_queueUrl, JsonSerializer.Serialize(model));
         return true;
     }
 
     public async Task<Subscription?> GetSubscriptionAsync(string id) => await _repository.GetByIdAsync(id);
 
     public async Task<bool> DeleteSubscriptionAsync(string id) => await _repository.DeleteAsync(id);
+
+    public async Task<List<Subscription>> GetAllSubscriptionsAsync() => await _repository.GetAllAsync();
+
+    public async Task<bool> UpdateSubscriptionAsync(SubscriptionUpdateModel model)
+    {
+        if (model.Id == null) throw new ArgumentException("Id could not be null");
+
+        var subscription = new Subscription
+        {
+            Id = model.Id,
+            CustomTemplate = model.CustomTemplate,
+            UserId = model.UserId,
+            Email = model.Email,
+            IdTemplate = model.IdTemplate,
+            LastSended = model.LastSended,
+            SubscriptionType = model.SubscriptionType
+        };
+
+        return await _repository.UpdateAsync(subscription);
+    }
 }

@@ -59,14 +59,29 @@ app.UseAuthorization();
 #region SUBSCRIPTIONS
 app.MapPost("/subscription", async (SubscriptionModel model, [FromServices] ISubscriptionServices services) =>
 {
-    await services.CreateSubscriptionAsync(model);
+    var result = await services.CreateSubscriptionAsync(model);
+    if (!result) return Results.BadRequest();
     return Results.Created();
+}).RequireAuthorization();
+
+app.MapPut("/subscription", async (SubscriptionUpdateModel model, [FromServices] ISubscriptionServices services) =>
+{
+    var result = await services.UpdateSubscriptionAsync(model);
+    if(!result) return Results.BadRequest();
+    return Results.Ok();
 }).RequireAuthorization();
 
 app.MapGet("/subscription/{id}", async (string id, [FromServices] ISubscriptionServices services) =>
 {
     var result = await services.GetSubscriptionAsync(id);
     if (result == null) return Results.NotFound();
+    return Results.Ok(result);
+}).RequireAuthorization();
+
+app.MapGet("/subscription", async ([FromServices] ISubscriptionServices services) =>
+{
+    var result = await services.GetAllSubscriptionsAsync();
+    if (result.Count == 0) return Results.NotFound();
     return Results.Ok(result);
 }).RequireAuthorization();
 
@@ -80,13 +95,28 @@ app.MapDelete("/subscription/{id}", async (string id, [FromServices] ISubscripti
 #region TEMPLATES
 app.MapPost("/template", async (TemplateModel model, [FromServices] ITemplateServices services) =>
 {
-    await services.CreateTemplateAsync(model);
+    var result = await services.CreateTemplateAsync(model);
+    if(!result) return Results.BadRequest();
+    return Results.Created();
+}).RequireAuthorization();
+
+app.MapPut("/template", async (TemplateUpdateModel model, [FromServices] ITemplateServices services) =>
+{
+    var result = await services.UpdateTemplateAsync(model);
+    if (!result) return Results.BadRequest();
     return Results.Created();
 }).RequireAuthorization();
 
 app.MapGet("/template/{id}", async (string id, [FromServices] ITemplateServices services) =>
 {
     var result = await services.GetTemplateAsync(id);
+    if (result == null) return Results.NotFound();
+    return Results.Ok(result);
+}).RequireAuthorization();
+
+app.MapGet("/template", async ([FromServices] ITemplateServices services) =>
+{
+    var result = await services.GetAllTemplatesAsync();
     if (result == null) return Results.NotFound();
     return Results.Ok(result);
 }).RequireAuthorization();

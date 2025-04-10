@@ -10,7 +10,6 @@ using System.Net;
 namespace Infra.Repositories;
 public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRepository
 {
-    //TODO CRIAR UPDATE e GET ALL NO REPOSITORIO E SERVICO
     public SubscriptionRepository(IAmazonDynamoDB dynamoDb, IConfiguration configuration) : base(dynamoDb, configuration["AWS:Subscription"])
     {
     }
@@ -77,7 +76,7 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
         {
             throw new CustomException(ex);
         }
-        
+
     }
 
     public async override Task<Subscription?> GetByIdAsync(string id)
@@ -113,6 +112,36 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
         {
             throw new CustomException(ex);
         }
+    }
+
+    public async override Task<bool> UpdateAsync(Subscription subscription)
+    {
+        if (subscription.Id == null) return false;
+
+        var request = new UpdateItemRequest
+        {
+            TableName = _tableName,
+            Key = new Dictionary<string, AttributeValue>
+            {
+                { "Id", new AttributeValue { S= subscription.Id }  }
+
+            },
+            UpdateExpression = "SET Email: email, SubscriptionType = :subscriptionType, IdTemplate = :id, LastSended = :last, CustomTemplate = :custom, UserId = :user",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                { ":email", new AttributeValue { S = subscription.Email } },
+                { ":subscriptionType", new AttributeValue { S = subscription.SubscriptionType.ToString() } },
+                { ":id", new AttributeValue { S = subscription.IdTemplate } },
+                { ":last", new AttributeValue { S = subscription.LastSended.ToString("o") } },
+                { ":custom", new AttributeValue { S = subscription.CustomTemplate } },
+                { ":user", new AttributeValue { S = subscription.UserId } }
+            },
+            ReturnValues = "UPDATED_NEW"
+        };
+
+        var response = await _dynamoDb.UpdateItemAsync(request);
+
+        return response.HttpStatusCode == HttpStatusCode.OK;
     }
 
 }
