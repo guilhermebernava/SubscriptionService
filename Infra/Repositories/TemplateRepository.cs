@@ -39,25 +39,25 @@ public class TemplateRepository : Repository<Template>, ITemplateRepository
 
     public async Task<List<Template>> GetAllAsync()
     {
-        var request = new GetItemRequest
+        var request = new ScanRequest
         {
             TableName = _tableName,
         };
 
         try
         {
-            var response = await _dynamoDb.GetItemAsync(request);
+            var response = await _dynamoDb.ScanAsync(request);
             var template = new List<Template>();
 
-            if (response.Item.Count <= 0) return template;
+            if (response.Items.Count <= 0) return template;
 
-            foreach (var item in response.Item)
+            foreach (var item in response.Items)
             {
                 template.Add(new Template
                 {
-                    Id = response.Item["Id"].S,
-                    TemplateHtml = response.Item["TemplateHtml"].S,
-                    UserId = response.Item["UserId"].S,
+                    Id = item["Id"].S,
+                    TemplateHtml = item["TemplateHtml"].S,
+                    UserId = item["UserId"].S,
                 });
             }
 
@@ -109,14 +109,13 @@ public class TemplateRepository : Repository<Template>, ITemplateRepository
             TableName = _tableName,
             Key = new Dictionary<string, AttributeValue>
             {
-                { "Id", new AttributeValue { S= subscription.Id }  }
-
+                { "Id", new AttributeValue { S = subscription.Id }  }
             },
-            UpdateExpression = "SET TemplateHtml: templateHtml, UserId = :userId",
-            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                    UpdateExpression = "SET TemplateHtml = :templateHtml, UserId = :userId",
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {
                 { ":templateHtml", new AttributeValue { S = subscription.TemplateHtml } },
-                { ":userId", new AttributeValue { S = subscription.UserId } },             
+                { ":userId", new AttributeValue { S = subscription.UserId } }
             },
             ReturnValues = "UPDATED_NEW"
         };
@@ -124,6 +123,7 @@ public class TemplateRepository : Repository<Template>, ITemplateRepository
         var response = await _dynamoDb.UpdateItemAsync(request);
 
         return response.HttpStatusCode == HttpStatusCode.OK;
+
     }
 
 }

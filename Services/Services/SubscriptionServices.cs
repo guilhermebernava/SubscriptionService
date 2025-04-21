@@ -40,6 +40,7 @@ public class SubscriptionServices : ISubscriptionServices
     public async Task<bool> UpdateSubscriptionAsync(SubscriptionUpdateModel model)
     {
         if (model.Id == null) throw new ArgumentException("Id could not be null");
+        if (model.SubscriptionType == ESubscriptionType.Immediately) throw new ArgumentException("This subscription type could not be updated");
 
         var subscription = new Subscription
         {
@@ -48,7 +49,7 @@ public class SubscriptionServices : ISubscriptionServices
             UserId = model.UserId,
             Email = model.Email,
             IdTemplate = model.IdTemplate,
-            LastSended = model.LastSended,
+            LastSended = DateTime.UtcNow,
             SubscriptionType = model.SubscriptionType
         };
 

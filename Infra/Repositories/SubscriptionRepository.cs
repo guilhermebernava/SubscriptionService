@@ -24,11 +24,12 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
                 { "Id", new AttributeValue { S = subscription.Id } },
                 { "Email", new AttributeValue { S = subscription.Email } },
                 { "SubscriptionType", new AttributeValue { S = subscription.SubscriptionType.ToString() } },
-                { "IdTemplate", new AttributeValue { S = subscription.IdTemplate } },
+                { "IdTemplate", new AttributeValue { S = subscription.IdTemplate ?? string.Empty } },
                 { "LastSended", new AttributeValue { S = subscription.LastSended.ToString("o") } },
-                { "CustomTemplate", new AttributeValue { S = subscription.CustomTemplate } },
+                { "CustomTemplate", new AttributeValue { S = subscription.CustomTemplate ?? string.Empty } },
                 { "UserId", new AttributeValue { S = subscription.UserId } }
             }
+
         };
 
         try
@@ -45,28 +46,29 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
 
     public async Task<List<Subscription>> GetAllAsync()
     {
-        var request = new GetItemRequest
+        var request = new ScanRequest
         {
             TableName = _tableName,
         };
+
         try
         {
-            var response = await _dynamoDb.GetItemAsync(request);
+            var response = await _dynamoDb.ScanAsync(request);
             var subscription = new List<Subscription>();
 
-            if (response.Item.Count <= 0) return subscription;
+            if (response.Items.Count <= 0) return subscription;
 
-            foreach (var item in response.Item)
+            foreach (var item in response.Items)
             {
                 subscription.Add(new Subscription
                 {
-                    Id = response.Item["Id"].S,
-                    Email = response.Item["Email"].S,
-                    SubscriptionType = Enum.Parse<ESubscriptionType>(response.Item["SubscriptionType"].S),
-                    IdTemplate = response.Item["IdTemplate"].S,
-                    LastSended = DateTime.Parse(response.Item["LastSended"].S),
-                    CustomTemplate = response.Item["CustomTemplate"].S,
-                    UserId = response.Item["UserId"].S,
+                    Id = item["Id"].S,
+                    Email = item["Email"].S,
+                    SubscriptionType = Enum.Parse<ESubscriptionType>(item["SubscriptionType"].S),
+                    IdTemplate = item["IdTemplate"].S,
+                    LastSended = DateTime.Parse(item["LastSended"].S),
+                    CustomTemplate = item["CustomTemplate"].S,
+                    UserId = item["UserId"].S,
                 });
             }
 
@@ -123,17 +125,16 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
             TableName = _tableName,
             Key = new Dictionary<string, AttributeValue>
             {
-                { "Id", new AttributeValue { S= subscription.Id }  }
-
+                { "Id", new AttributeValue { S = subscription.Id } }
             },
-            UpdateExpression = "SET Email: email, SubscriptionType = :subscriptionType, IdTemplate = :id, LastSended = :last, CustomTemplate = :custom, UserId = :user",
-            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                    UpdateExpression = "SET Email = :email, SubscriptionType = :subscriptionType, IdTemplate = :id, LastSended = :last, CustomTemplate = :custom, UserId = :user",
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {
                 { ":email", new AttributeValue { S = subscription.Email } },
                 { ":subscriptionType", new AttributeValue { S = subscription.SubscriptionType.ToString() } },
-                { ":id", new AttributeValue { S = subscription.IdTemplate } },
+                { ":id", new AttributeValue { S = subscription.IdTemplate ?? string.Empty } },
                 { ":last", new AttributeValue { S = subscription.LastSended.ToString("o") } },
-                { ":custom", new AttributeValue { S = subscription.CustomTemplate } },
+                { ":custom", new AttributeValue { S = subscription.CustomTemplate ?? string.Empty } },
                 { ":user", new AttributeValue { S = subscription.UserId } }
             },
             ReturnValues = "UPDATED_NEW"
@@ -142,6 +143,7 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
         var response = await _dynamoDb.UpdateItemAsync(request);
 
         return response.HttpStatusCode == HttpStatusCode.OK;
+
     }
 
 }
