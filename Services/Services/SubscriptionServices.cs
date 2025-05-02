@@ -5,7 +5,6 @@ using Infra.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Services.Interfaces;
 using Services.Models;
-using SQS_Consumer;
 using System.Text.Json;
 
 namespace Services.Services;
