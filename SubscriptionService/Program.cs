@@ -7,9 +7,11 @@ using Infra.Interfaces;
 using Infra.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Services.Interfaces;
 using Services.Models;
 using Services.Services;
+using System.IdentityModel.Tokens.Jwt;
 using WebApi.Subscription.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,24 +39,42 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.Authority = builder.Configuration["AWS:CognitoUrl"];
         options.Audience = builder.Configuration["AWS:AppClientId"];
+        options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
             ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["AWS:CognitoUrl"],
+            ValidateAudience = false,
+            ValidateLifetime = true,
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"Falha na autenticação: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("Token validado com sucesso.");
+                return Task.CompletedTask;
+            }
+        };
+
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddAuthentication();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment()) 
     app.MapOpenApi();
 
 app.UseHttpsRedirection();
-
-app.UseMiddleware<CustomExceptionMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<CustomExceptionMiddleware>();
+
 
 #region SUBSCRIPTIONS
 app.MapPost("/subscription", async (SubscriptionModel model, [FromServices] ISubscriptionServices services) =>
