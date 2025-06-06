@@ -7,11 +7,9 @@ using Infra.Interfaces;
 using Infra.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using Services.Interfaces;
 using Services.Models;
 using Services.Services;
-using System.IdentityModel.Tokens.Jwt;
 using WebApi.Subscription.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -67,7 +65,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddAuthentication();
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment()) 
+if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
 app.UseHttpsRedirection();
@@ -87,7 +85,7 @@ app.MapPost("/subscription", async (SubscriptionModel model, [FromServices] ISub
 app.MapPut("/subscription", async (SubscriptionUpdateModel model, [FromServices] ISubscriptionServices services) =>
 {
     var result = await services.UpdateSubscriptionAsync(model);
-    if(!result) return Results.BadRequest();
+    if (!result) return Results.BadRequest();
     return Results.Ok();
 }).RequireAuthorization();
 
@@ -116,7 +114,7 @@ app.MapDelete("/subscription/{id}", async (string id, [FromServices] ISubscripti
 app.MapPost("/template", async (TemplateModel model, [FromServices] ITemplateServices services) =>
 {
     var result = await services.CreateTemplateAsync(model);
-    if(!result) return Results.BadRequest();
+    if (!result) return Results.BadRequest();
     return Results.Created();
 }).RequireAuthorization();
 
