@@ -54,4 +54,6 @@ public class SubscriptionServices : ISubscriptionServices
 
         return await _repository.UpdateAsync(subscription);
     }
+
+    public async Task<List<Subscription>> GetSubscriptionsByUserIdAsync(string userId) => await _repository.GetByUserIdAsync(userId);
 }

@@ -96,6 +96,13 @@ app.MapGet("/subscription/{id}", async (string id, [FromServices] ISubscriptionS
     return Results.Ok(result);
 }).RequireAuthorization();
 
+app.MapGet("/subscription/byUserId/{id}", async (string id, [FromServices] ISubscriptionServices services) =>
+{
+    var result = await services.GetSubscriptionsByUserIdAsync(id);
+    if (result == null) return Results.NotFound();
+    return Results.Ok(result);
+}).RequireAuthorization();
+
 app.MapGet("/subscription", async ([FromServices] ISubscriptionServices services) =>
 {
     var result = await services.GetAllSubscriptionsAsync();

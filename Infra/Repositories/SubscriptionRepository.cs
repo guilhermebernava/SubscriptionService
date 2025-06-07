@@ -116,6 +116,46 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
         }
     }
 
+    public async Task<List<Subscription>> GetByUserIdAsync(string userId)
+    {
+        var request = new ScanRequest
+        {
+            TableName = _tableName,
+            FilterExpression = "UserId = :uid",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+        {
+            { ":uid", new AttributeValue { S = userId } }
+        }
+        };
+
+        try
+        {
+            var response = await _dynamoDb.ScanAsync(request);
+            var subscriptions = new List<Subscription>();
+
+            foreach (var item in response.Items)
+            {
+                subscriptions.Add(new Subscription
+                {
+                    Id = item["Id"].S,
+                    Email = item["Email"].S,
+                    SubscriptionType = Enum.Parse<ESubscriptionType>(item["SubscriptionType"].S),
+                    IdTemplate = item.ContainsKey("IdTemplate") ? item["IdTemplate"].S : null,
+                    LastSended = DateTime.Parse(item["LastSended"].S),
+                    CustomTemplate = item.ContainsKey("CustomTemplate") ? item["CustomTemplate"].S : null,
+                    UserId = item["UserId"].S,
+                });
+            }
+
+            return subscriptions;
+        }
+        catch (Exception ex)
+        {
+            throw new CustomException(ex);
+        }
+    }
+
+
     public async override Task<bool> UpdateAsync(Subscription subscription)
     {
         if (subscription.Id == null) return false;
