@@ -1,6 +1,7 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Domain.Entities;
+using Domain.Enums;
 using Infra.Exceptions;
 using Infra.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -93,6 +94,41 @@ public class TemplateRepository : Repository<Template>, ITemplateRepository
                 TemplateHtml = response.Item["TemplateHtml"].S,
                 UserId = response.Item["UserId"].S,
             };
+        }
+        catch (Exception ex)
+        {
+            throw new CustomException(ex);
+        }
+    }
+
+    public async Task<List<Template>> GetByUserIdAsync(string userId)
+    {
+        var request = new ScanRequest
+        {
+            TableName = _tableName,
+            FilterExpression = "UserId = :uid",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+        {
+            { ":uid", new AttributeValue { S = userId } }
+        }
+        };
+
+        try
+        {
+            var response = await _dynamoDb.ScanAsync(request);
+            var templates = new List<Template>();
+
+            foreach (var item in response.Items)
+            {
+                templates.Add(new Template
+                {
+                    Id = item["Id"].S,
+                    TemplateHtml = item["TemplateHtml"].S,
+                    UserId = item["UserId"].S,
+                });
+            }
+
+            return templates;
         }
         catch (Exception ex)
         {

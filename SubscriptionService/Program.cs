@@ -139,6 +139,13 @@ app.MapGet("/template/{id}", async (string id, [FromServices] ITemplateServices 
     return Results.Ok(result);
 }).RequireAuthorization();
 
+app.MapGet("/template/byUserId/{id}", async (string id, [FromServices] ITemplateServices services) =>
+{
+    var result = await services.GetByUserIdTemplatesAsync(id);
+    if (result == null) return Results.NotFound();
+    return Results.Ok(result);
+}).RequireAuthorization();
+
 app.MapGet("/template", async ([FromServices] ITemplateServices services) =>
 {
     var result = await services.GetAllTemplatesAsync();

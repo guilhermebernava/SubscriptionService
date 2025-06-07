@@ -34,4 +34,7 @@ public class TemplateServices : ITemplateServices
 
         return await _repository.UpdateAsync(template);
     }
+
+    public async Task<List<Template>> GetByUserIdTemplatesAsync(string userId) => await _repository.GetByUserIdAsync(userId);
+
 }
